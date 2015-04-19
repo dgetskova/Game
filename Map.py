@@ -10,11 +10,18 @@ class Dungeons:
         self.row = 0
         self.col = 0
 
+    def get_dungeon(self):
+        return self.dungeon
+
 # da opravq printa - trqbva da vrushta list za da moje da go pusna na testove
     def print_map(self):
+        new_sequence = []
         for x in self.dungeon:
             ss = ''.join(x)
             print(ss)
+            new_sequence.append(ss)
+        return new_sequence
+
 
     def starting_point(self, S):
         pass
