@@ -1,3 +1,6 @@
+import random
+
+
 class GeneralDescription():
 
     def __init__(self, health, mana):
@@ -27,11 +30,10 @@ class GeneralDescription():
         self.health += healing_points
         return True
 
-    def take_mana(self):
-        pass
-        # pri vseki hod da se povishava manata
-        # pri piene na neshto pak se povishava
-        # ne moje da e poveche ot purvonachalnata max mana
+    def take_mana(self, mana_points):
+        if self.mana + mana_points > 100:
+            self.mana = 100
+        self.mana += mana_points
 
     def attack(self):
         pass
@@ -53,13 +55,13 @@ class Weapon:
 
 class Spell:
 
-    def __init__(self, name, damage, required_mana):
+    def __init__(self, name, damage, required_mana,cast):
         self.name = name
         self.damage = damage
         self.required_mana = required_mana
 
 
-class Hero (GeneralDescription, Spell, Weapon):
+class Hero (GeneralDescription):
 
     def __init__(self, name="Didka", title="Dragonslayer", health=100, mana=100, mana_regeneration_rate=2):
         super().__init__(health, mana)
@@ -121,106 +123,100 @@ class Dungeons:
                 break
             return found
 
-    def find_symbol(self, symbol):
+    def find_symbol_treasure(self, symbol):
         print(type(self.dungeon))
+        positions = []
         line_index = 0
         for line in self.dungeon:
             elem_index = 0
             for elem in line:
                 if elem == symbol:
-                    return [line_index, elem_index]
+                    # return [(line_index, elem_index)]  # touple ot pozicii
+                    positions.append((line_index, elem_index))
                 elem_index += 1
             line_index += 1
+        return positions
+
+
+
+    def is_in_bound(self, positions):
+        # positions = [row, col]
+        count_row = len(self.dungeon)
+        count_col = len(self.dungeon[0])
+        return (positions[0] >= 0 and positions[0] < count_row)\
+            and (positions[1] >= 0 and positions[1] < count_col)
+
+    def return_what_found_while_moving(self, symbol):
+        if symbol == 'G':
+            return "You are the best ^_^ End of level!"
+
+        if symbol == '.':
+            return True
+        if symbol == 'T':
+
+            return "You found treasure"
+
+        if symbol == 'E':
+            # make fight
+            return "Fight! Let the better win!"
+
+    def make_move(self, old_positions, new_positions):
+        new_row = new_positions[0]
+        new_col = new_positions[1]
+        old_row = old_positions[0]
+        old_col = old_positions[1]
+        if self.is_in_bound(new_positions):
+            if self.dungeon[new_row][new_col] is not'#':
+                to_return = self.return_what_found_while_moving(
+                    self.dungeon[new_row][new_col])
+                self.dungeon[old_row][old_col] = '.'
+                self.dungeon[new_row][new_col] = 'H'
+            else:
+                return False
+        else:
+            return False
+
+        self.row = new_row
+        self.col = new_col
+        return to_return
+
+    def is_valid_move(self, directions):
+        if directions == "up":
+            return self.make_move([self.row, self.col], [self.row - 1, self.col])
+
+        elif directions == "down":
+            return self.make_move([self.row, self.col], [self.row + 1, self.col])
+
+        elif directions == "left":
+            return self.make_move([self.row, self.col], [self.row, self.col - 1])
+
+        elif directions == "right":
+            return self.make_move([self.row, self.col], [self.row, self.col + 1])
 
     def move_hero(self, directions):
-        self.directions = directions
-
-    def move_up(self):
-        check = True
-        if self.y - 1 < 0:
-            check = False
-        elif self.dungeon[self.y - 1][self.x] == '.':
-            temp = self.dungeon[self.y][self.x]
-            self.dungeon[self.y][self.x] = self.dungeon[self.y - 1][self.x]
-            self.dungeon[self.y - 1][self.x] = temp
-            self.y -= 1
-        elif self.dungeon[self.y - 1][self.x] == '#':
-            check = False
-        elif self.dungeon[self.y - 1][self.x] == 'T':
-            self.dungeon[self.y][self.x] = "."
-            # absorb treasure
-            self.dungeon[self.y - 1][self.x] = 'H'
-            self.dungeon[self.y][self.x] = "."
-            self.y -= 1
+        if directions in ["up", "down", "left", "right"]:
+            return self.is_valid_move(directions)
+            self.mana += self.mana_regeneration_rate
         else:
-            # Fight
-            print("Let's fight")
-        return check
+            print("Wrong input!")
 
-    def move_down(self):
-        check = True
-        if self.y + 1 > len(self.dungeon) - 1:
-            check = False
-        elif self.dungeon[self.y + 1][self.x] == '.':
-            temp = self.dungeon[self.y][self.x]
-            self.dungeon[self.y][self.x] = self.dungeon[self.y + 1][self.x]
-            self.dungeon[self.y + 1][self.x] = temp
-            self.y += 1
-        elif self.dungeon[self.y + 1][self.x] == '#':
-            check = False
-        elif self.dungeon[self.y + 1][self.x] == 'T':
-            # absorb treasure
-            self.dungeon[self.y + 1][self.x] = 'H'
-            self.dungeon[self.y][self.x] = "."
-            self.y += 1
+    def pick_treasure(self):
+
+        weapon_bonus = Weapon("Spike", 25)
+        spell_bonus = Spell("Silver", 30, 7)
+        mana_bonus = 6,
+        health_potion_bonus = 10
+
+        T = random.choice(
+            [mana_bonus, health_potion_bonus, weapon_bonus, spell_bonus])
+        if T == mana_bonus:
+            self.hero.take_mana(mana_bonus)
+        elif T == health_potion_bonus:
+                self.hero.take_healing(health_potion_bonus)
+        elif T == weapon_bonus:
+            self.hero.equip(T)
         else:
-            # Fight
-            print("Let's fight")
-        return check
-
-    def move_left(self):
-        check = True
-        if self.x - 1 < 0:
-            check = False
-        elif self.dungeon[self.y][self.x - 1] == '.':
-            temp = self.dungeon[self.y][self.x - 1]
-            self.dungeon[self.y][self.x - 1] = self.dungeon[self.y][self.x]
-            self.dungeon[self.y][self.x] = temp
-            self.x -= 1
-        elif self.dungeon[self.y][self.x - 1] == '#':
-            check = False
-        elif self.dungeon[self.y][self.x - 1] == 'T':
-            # absorb treasure
-            self.dungeon[self.y][self.x - 1] = 'H'
-            self.dungeon[self.y][self.x] = "."
-            self.x -= 1
-        else:
-            # Fight
-            print("Let's fight")
-        return check
-
-    def move_right(self):
-        check = True
-        if self.x + 1 > len(self.dungeon[0]) - 1:
-            check = False
-        elif self.dungeon[self.y][self.x + 1] == ".":
-            temp = self.dungeon[self.y][self.x + 1]
-            self.dungeon[self.y][self.x + 1] = self.dungeon[self.y][self.x]
-            self.dungeon[self.y][self.x] = temp
-            self.x += 1
-        elif self.dungeon[self.y][self.x + 1] == "#":
-            check = False
-        elif self.dungeon[self.y][self.x + 1] == 'T':
-            # absorb treasure
-            self.dungeon[self.y][self.x + 1] = 'H'
-            self.dungeon[self.y][self.x] = "."
-            self.x += 1
-        else:
-            # Fight
-            print("Let's fight")
-        return check
-
-
+            self.hero.learn(T)
 a = Dungeons("map.txt")
 a.print_map()
 a.spawn()
@@ -229,3 +225,9 @@ a.print_map()
 didi = Hero()
 didi.equip(Weapon("Asda", 50))
 didi.learn(Spell("spell", 50, 5))
+hero = Hero()
+print(hero.known_as())
+print(a.pick_treasure())
+w = Weapon("Silver", 50)
+print("---------------------------")
+didi.equip(w)

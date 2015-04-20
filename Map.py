@@ -1,5 +1,10 @@
 from Spell import Spell
 from Weapon import Weapon
+import random
+weapon_bonus = Weapon("Spike", 25)
+spell_bonus = Spell("Silver", 30, 7)
+mana_bonus = 6,
+health_potion_bonus = 10
 
 
 class Dungeons:
@@ -8,8 +13,15 @@ class Dungeons:
         lines = open(filename).read().split("\n")
         lines = [line for line in lines if line.strip() != ""]
         self.dungeon = [list(line) for line in lines]
-        self.x = -1
-        self.y = -1
+        self.row = 0
+        self.col = 0
+        self.treasure = {}
+        self.get_treasures()
+
+        def get_treasures(self):
+            treasure_sequence = self.find_symbol('T')
+            for x in treasure_sequence:
+                self.treasure[x] = random.choice([mana_bonus, health_potion_bonus,weapon_bonus, spell_bonus])
 
     def print_map(self):
         for x in self.dungeon:
@@ -35,31 +47,41 @@ class Dungeons:
 
     def find_symbol(self, symbol):
         print(type(self.dungeon))
+        positions = []
         line_index = 0
         for line in self.dungeon:
             elem_index = 0
             for elem in line:
                 if elem == symbol:
-                    return [line_index, elem_index]
+                    # return [(line_index, elem_index)]  # touple ot pozicii
+                    positions.append((line_index, elem_index))
                 elem_index += 1
             line_index += 1
+        return positions
+
+    def find_symbol(self, symbol):
+        print(type(self.dungeon))
+        positions = []
+        line_index = 0
+        for line in self.dungeon:
+            elem_index = 0
+            for elem in line:
+                if elem == symbol:
+                    # return [(line_index, elem_index)]  # touple ot pozicii
+                    positions.append((line_index, elem_index))
+                elem_index += 1
+            line_index += 1
+        return positions
 
     def pick_treasure(self):
-        weapon_bonus = Weapon("Spike", 25)
-        spell_bonus = Spell("Silver", 30, 7)
-        mana_bonus = 6,
-        health_potion_bonus = 10
-
-        T = random.choice(
-            [mana_bonus, health_potion_bonus, weapon_bonus, spell_bonus])
-        if T == mana_bonus:
+        if self.treasure[(self.row, self.col)] == mana_bonus:
             self.hero.take_mana(mana_bonus)
-        elif T == health_potion_bonus:
-                self.hero.take_healing(health_potion_bonus)
-        elif T == weapon_bonus:
-            self.hero.equip(T)
+        elif self.treasure[(self.row, self.col)] == health_potion_bonus:
+            self.hero.take_healing(health_potion_bonus)
+        elif self.treasure[(self.row, self.col)] == weapon_bonus:
+            self.hero.equip(self.treasure[(self.row, self.col)])
         else:
-            self.hero.learn(T)
+            self.hero.learn(self.treasure[(self.row, self.col)])
 
     def is_in_bound(self, positions):
         # positions = [row, col]
@@ -75,7 +97,7 @@ class Dungeons:
         if symbol == '.':
             return True
         if symbol == 'T':
-
+            self.pick_treasure()
             return "You found treasure"
 
         if symbol == 'E':
