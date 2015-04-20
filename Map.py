@@ -1,3 +1,8 @@
+from Hero import Hero
+from Hero import Enemy
+from Fight import Fight
+
+
 class Dungeons:
       # karta=[["S",".","#","#",".",".",".",".",".","T"],["#","T","#","#",".",".","#","#","#,"."],
       # ["#",".","#","#","#","E","#","#","#","E"],["#",".","E",".",".",".","#","#","#","."],["#","#","#","T","#","#","#","#","#","G"]]
@@ -9,11 +14,18 @@ class Dungeons:
         self.dungeon = dungeon
         self.row = 0
         self.col = 0
+        self.hero = Hero()
+        self.enemys = {}
+        self.make_enemy_dict()
+
+        # da napravq spisuk ot diktionarita {poziciq : Enemy}
 
     def get_dungeon(self):
         return self.dungeon
 
-# da opravq printa - trqbva da vrushta list za da moje da go pusna na testove
+    def get_enemys(self):
+        return self.enemys
+
     def print_map(self):
         new_sequence = []
         for x in self.dungeon:
@@ -21,7 +33,6 @@ class Dungeons:
             print(ss)
             new_sequence.append(ss)
         return new_sequence
-
 
     def starting_point(self, S):
         pass
@@ -31,15 +42,24 @@ class Dungeons:
 
     def find_symbol(self, symbol):
         print(type(self.dungeon))
+        positions = []
         line_index = 0
         for line in self.dungeon:
             elem_index = 0
             for elem in line:
                 if elem == symbol:
-                    return [line_index, elem_index]
+                    # return [(line_index, elem_index)]  # touple ot pozicii
+                    positions.append((line_index, elem_index))
                 elem_index += 1
             line_index += 1
+        return positions
 
+    def make_enemy_dict(self):
+        enemys_positions = self.find_symbol("E")
+        for x in enemys_positions:
+            self.enemys[x] = Enemy()
+
+# *************************************************************** mova
     def is_in_bound(self, positions):
         # positions = [row, col]
         count_row = len(self.dungeon)
@@ -55,11 +75,11 @@ class Dungeons:
             return True
 
         if symbol == 'T':
-            # make magic
+            # 
             return "You found treasure"
 
         if symbol == 'E':
-            # make fight
+            Fight(self.hero, self.enemys[self.row, self._col])
             return "Fight! Let the better win!"
 
     def make_move(self, old_positions, new_positions):
@@ -100,6 +120,11 @@ class Dungeons:
         else:
             print("Wrong input!")
 
+# ********************************************************************* attack
+    def hero_attack(self):
+        # proverqvame chetirite posoki dali imame E i suotvetno go atakuvame
+        # start_fight = Fight()
+        pass
 
 a = Dungeons("map.txt")
 a.print_map()
